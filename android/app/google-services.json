@@ -1,0 +1,59 @@
+{
+  "project_info": {
+    "project_number": "812270931944",
+    "firebase_url": "https://delpack-ef11a.firebaseio.com",
+    "project_id": "delpack-ef11a",
+    "storage_bucket": "delpack-ef11a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:812270931944:android:6eca8990bbed743b",
+        "android_client_info": {
+          "package_name": "com.outbrain.delpack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "812270931944-77iacmk7qk79m3bt8asskrcub5ebr7j6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.outbrain.delpack",
+            "certificate_hash": "da4acc1f3ec3254ca1b58b219c37ab02a97dde68"
+          }
+        },
+        {
+          "client_id": "812270931944-iq0rph6rjie5n0qpjom79mgpm1e764gs.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "812270931944-iq0rph6rjie5n0qpjom79mgpm1e764gs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7S_UpG6597GvF638n1YfqWiV4Loozlzw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "812270931944-iq0rph6rjie5n0qpjom79mgpm1e764gs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
