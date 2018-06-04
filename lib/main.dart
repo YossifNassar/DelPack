@@ -46,9 +46,10 @@ Future<Null> main() async {
   );
   print("signed in ${user.displayName}");
 
-  final accountCredentials = new ServiceAccountCredentials.fromJson({
-    //JSON
-});
+  final accountCredentials = new ServiceAccountCredentials.fromJson(
+      { //JSON
+      }
+  );
   var scopes = ['https://www.googleapis.com/auth/cloud-vision'];
 
   client = await clientViaServiceAccount(accountCredentials, scopes)
@@ -62,7 +63,7 @@ Future<Null> main() async {
 
   runApp(new MaterialApp(
     title: 'DelPack',
-    home: new FirstScreen("User: ${user.displayName}"),
+    home: new FirstScreen(user.displayName),
   ));
 }
 
@@ -75,20 +76,30 @@ class FirstScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new CameraApp();
+    return new CameraApp(_loggedUser);
   }
 }
 
 class CameraApp extends StatefulWidget {
+  String _username;
+  CameraApp(String username) {
+    this._username = username;
+  }
+
   @override
-  _CameraApp createState() => new _CameraApp();
+  _CameraApp createState() => new _CameraApp(_username);
 }
 
 class _CameraApp extends State<CameraApp> {
+  String _username;
+  _CameraApp(String username) {
+    this._username = username;
+  }
+
   File _image;
 
   Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera);
+    var image = await ImagePicker.pickImage(source: ImageSource.camera, maxHeight: 1500.0, maxWidth: 1500.0);
     var bytes = image.readAsBytesSync();
     _annotateImage(bytes);
 
@@ -106,7 +117,7 @@ class _CameraApp extends State<CameraApp> {
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text('Image Picker Example'),
+        title: new Text('Welcome $_username'),
       ),
       body: new Center(
         child: _image == null
