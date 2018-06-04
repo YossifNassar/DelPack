@@ -7,3 +7,8 @@
 build/
 
 .flutter-plugins
+.idea
+.idea/
+~/.idea
+ios/Frameworks/
+/.idea/workspace.xml
