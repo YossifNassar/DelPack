@@ -10,13 +10,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 
-/// Assumes the given path is a text-file-asset.
-Future<String> getFileData(String path) async {
-  return await rootBundle.loadString(path);
-}
-
 Future<Null> main() async {
-  String keyTxt = await getFileData("text/cloudsecret.json");
   final _googleSignIn = new GoogleSignIn(
     scopes: ['email'],
   );
@@ -28,22 +22,10 @@ Future<Null> main() async {
     idToken: googleAuth.idToken,
   );
   print("signed in ${user.displayName}");
-  final accountCredentials = new ServiceAccountCredentials.fromJson(json.decode(keyTxt));
-  var scopes = ['https://www.googleapis.com/auth/cloud-vision'];
-  vision.VisionApi visionApi;
-  AuthClient client;
-  client = await clientViaServiceAccount(accountCredentials, scopes)
-      .then((AuthClient client) {
-    // [client] is an authenticated HTTP client.
-    return client;
-  });
-
-  print("client: $client");
-  visionApi = vision.VisionApi(client);
 
   runApp(new MaterialApp(
     title: 'DelPack',
-    home: new FirstScreen(user.displayName, visionApi),
+    home: new FirstScreen(user.displayName),
     theme: new ThemeData(
       brightness: Brightness.light,
       primaryColor: Colors.white,
@@ -54,40 +36,38 @@ Future<Null> main() async {
 
 class FirstScreen extends StatelessWidget {
   final String _loggedUser;
-  final vision.VisionApi _visionApi;
 
-  FirstScreen(String loggedUser, vision.VisionApi visionApi):
-        _loggedUser = loggedUser, _visionApi = visionApi;
+  FirstScreen(String loggedUser):
+        _loggedUser = loggedUser;
 
   @override
   Widget build(BuildContext context) {
-    return new CameraApp(_loggedUser, _visionApi);
+    return new CameraApp(_loggedUser);
   }
 }
 
 class CameraApp extends StatefulWidget {
   final String _username;
-  final vision.VisionApi _visionApi;
 
-  CameraApp(String username, vision.VisionApi visionApi):
-    _username = username, _visionApi = visionApi;
+  CameraApp(String username):
+    _username = username;
 
 
   @override
-  _CameraApp createState() => new _CameraApp(_username, _visionApi);
+  _CameraApp createState() => new _CameraApp(_username);
 }
 
 class _CameraApp extends State<CameraApp> {
   final String _username;
-  final vision.VisionApi _visionApi;
+  vision.VisionApi _visionApi;
 
-  _CameraApp(String username, vision.VisionApi visionApi):
-        _username = username, _visionApi = visionApi;
+  _CameraApp(String username):
+        _username = username;
 
   File _image;
 
   Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera, maxHeight: 1250.0, maxWidth: 1000.0);
+    var image = await ImagePicker.pickImage(source: ImageSource.camera, maxWidth: 1200.0, maxHeight: 1200.0);
     var bytes = image.readAsBytesSync();
     _annotateImage(bytes);
 
@@ -123,8 +103,28 @@ class _CameraApp extends State<CameraApp> {
     }
   }
 
+  Future<String> _getFileData(String path) async {
+    return await rootBundle.loadString(path);
+  }
+
+  void _initVision() async{
+    String keyTxt = await _getFileData("text/cloudsecret.json");
+    final accountCredentials = new ServiceAccountCredentials.fromJson(json.decode(keyTxt));
+    var scopes = ['https://www.googleapis.com/auth/cloud-vision'];
+    AuthClient client;
+    client = await clientViaServiceAccount(accountCredentials, scopes)
+        .then((AuthClient client) {
+      // [client] is an authenticated HTTP client.
+      return client;
+    });
+
+    print("client: $client");
+    _visionApi = vision.VisionApi(client);
+  }
+
   @override
   void initState() {
+    _initVision();
     super.initState();
   }
 
