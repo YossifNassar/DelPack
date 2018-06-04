@@ -7,8 +7,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import "package:googleapis_auth/auth_io.dart";
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
+
+/// Assumes the given path is a text-file-asset.
+Future<String> getFileData(String path) async {
+  return await rootBundle.loadString(path);
+}
 
 Future<Null> main() async {
+  String keyTxt = await getFileData("text/cloudsecret.json");
   final _googleSignIn = new GoogleSignIn(
     scopes: ['email'],
   );
@@ -20,12 +28,7 @@ Future<Null> main() async {
     idToken: googleAuth.idToken,
   );
   print("signed in ${user.displayName}");
-
-  final accountCredentials = new ServiceAccountCredentials.fromJson(
-  {
-    //JSON
-  }
-  );
+  final accountCredentials = new ServiceAccountCredentials.fromJson(json.decode(keyTxt));
   var scopes = ['https://www.googleapis.com/auth/cloud-vision'];
   vision.VisionApi visionApi;
   AuthClient client;
