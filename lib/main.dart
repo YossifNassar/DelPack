@@ -47,8 +47,9 @@ Future<Null> main() async {
   print("signed in ${user.displayName}");
 
   final accountCredentials = new ServiceAccountCredentials.fromJson(
-      { //JSON
-      }
+    {
+      //JSON
+    }
   );
   var scopes = ['https://www.googleapis.com/auth/cloud-vision'];
 
@@ -64,15 +65,18 @@ Future<Null> main() async {
   runApp(new MaterialApp(
     title: 'DelPack',
     home: new FirstScreen(user.displayName),
+    theme: new ThemeData(
+      brightness: Brightness.light,
+      primaryColor: Colors.white,
+      accentColor: Colors.blueGrey,
+    ),
   ));
 }
 
 class FirstScreen extends StatelessWidget {
-  String _loggedUser;
+  final String _loggedUser;
 
-  FirstScreen(String loggedUser) {
-    this._loggedUser = loggedUser;
-  }
+  FirstScreen(String loggedUser): _loggedUser = loggedUser;
 
   @override
   Widget build(BuildContext context) {
@@ -81,25 +85,23 @@ class FirstScreen extends StatelessWidget {
 }
 
 class CameraApp extends StatefulWidget {
-  String _username;
-  CameraApp(String username) {
+  final String _username;
+  CameraApp(String username):
     this._username = username;
-  }
+
 
   @override
   _CameraApp createState() => new _CameraApp(_username);
 }
 
 class _CameraApp extends State<CameraApp> {
-  String _username;
-  _CameraApp(String username) {
-    this._username = username;
-  }
+  final String _username;
+  _CameraApp(String username): _username = username;
 
   File _image;
 
   Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera, maxHeight: 1500.0, maxWidth: 1500.0);
+    var image = await ImagePicker.pickImage(source: ImageSource.camera, maxHeight: 1250.0, maxWidth: 1000.0);
     var bytes = image.readAsBytesSync();
     _annotateImage(bytes);
 
