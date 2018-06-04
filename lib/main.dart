@@ -6,32 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart' show GoogleSignIn;
 import 'package:firebase_auth/firebase_auth.dart';
 import "package:googleapis_auth/auth_io.dart";
 import 'package:image_picker/image_picker.dart';
-
-vision.VisionApi visionApi;
-AuthClient client;
-
-Future<Null> _annotateImage(List<int> bytes) async {
-  var imp = visionApi.images;
-  var request = vision.AnnotateImageRequest()
-    ..features = [vision.Feature()..type = "DOCUMENT_TEXT_DETECTION"];
-//  var imageSource = vision.ImageSource()
-//    ..imageUri = "https://cloud.google.com/vision/docs/images/abbey_road.JPG";
-  var image = vision.Image()
-//    ..source = imageSource;
-    ..contentAsBytes = bytes;
-  request.image = image;
-  var annotateRequest = vision.BatchAnnotateImagesRequest()
-    ..requests = [request];
-  print("Sending request at: ${DateTime.now()}");
-  var res = await imp.annotate(annotateRequest);
-  print("Receiving response at: ${DateTime.now()}");
-  res?.responses?.forEach((r) {
-    r.textAnnotations.forEach((txt) {
-      print(txt.description);
-    });
-  });
-  print("Done printing annotations at: ${DateTime.now()}");
-}
+import 'package:firebase_database/firebase_database.dart';
 
 Future<Null> main() async {
   final _googleSignIn = new GoogleSignIn(
@@ -47,12 +22,13 @@ Future<Null> main() async {
   print("signed in ${user.displayName}");
 
   final accountCredentials = new ServiceAccountCredentials.fromJson(
-    {
-      //JSON
-    }
+  {
+    //JSON
+  }
   );
   var scopes = ['https://www.googleapis.com/auth/cloud-vision'];
-
+  vision.VisionApi visionApi;
+  AuthClient client;
   client = await clientViaServiceAccount(accountCredentials, scopes)
       .then((AuthClient client) {
     // [client] is an authenticated HTTP client.
@@ -64,7 +40,7 @@ Future<Null> main() async {
 
   runApp(new MaterialApp(
     title: 'DelPack',
-    home: new FirstScreen(user.displayName),
+    home: new FirstScreen(user.displayName, visionApi),
     theme: new ThemeData(
       brightness: Brightness.light,
       primaryColor: Colors.white,
@@ -75,28 +51,35 @@ Future<Null> main() async {
 
 class FirstScreen extends StatelessWidget {
   final String _loggedUser;
+  final vision.VisionApi _visionApi;
 
-  FirstScreen(String loggedUser): _loggedUser = loggedUser;
+  FirstScreen(String loggedUser, vision.VisionApi visionApi):
+        _loggedUser = loggedUser, _visionApi = visionApi;
 
   @override
   Widget build(BuildContext context) {
-    return new CameraApp(_loggedUser);
+    return new CameraApp(_loggedUser, _visionApi);
   }
 }
 
 class CameraApp extends StatefulWidget {
   final String _username;
-  CameraApp(String username):
-    this._username = username;
+  final vision.VisionApi _visionApi;
+
+  CameraApp(String username, vision.VisionApi visionApi):
+    _username = username, _visionApi = visionApi;
 
 
   @override
-  _CameraApp createState() => new _CameraApp(_username);
+  _CameraApp createState() => new _CameraApp(_username, _visionApi);
 }
 
 class _CameraApp extends State<CameraApp> {
   final String _username;
-  _CameraApp(String username): _username = username;
+  final vision.VisionApi _visionApi;
+
+  _CameraApp(String username, vision.VisionApi visionApi):
+        _username = username, _visionApi = visionApi;
 
   File _image;
 
@@ -106,13 +89,46 @@ class _CameraApp extends State<CameraApp> {
     _annotateImage(bytes);
 
     setState(() {
+      _deleteImageFile();
       _image = image;
     });
+  }
+
+  Future<Null> _annotateImage(List<int> bytes) async {
+    var imp = _visionApi.images;
+    var request = vision.AnnotateImageRequest()
+      ..features = [vision.Feature()..type = "DOCUMENT_TEXT_DETECTION"];
+    var image = vision.Image()
+      ..contentAsBytes = bytes;
+    request.image = image;
+    var annotateRequest = vision.BatchAnnotateImagesRequest()
+      ..requests = [request];
+    print("Request was sent at: ${DateTime.now()}");
+    var res = await imp.annotate(annotateRequest);
+    print("Response was received at: ${DateTime.now()}");
+    res?.responses?.forEach((r) {
+      r.textAnnotations.forEach((txt) {
+        print(txt.description);
+      });
+    });
+  }
+
+  void _deleteImageFile() {
+    if(_image != null) {
+      _image.delete();
+      _image = null;
+    }
   }
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _deleteImageFile();
+    super.dispose();
   }
 
   @override
