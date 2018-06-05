@@ -6,27 +6,20 @@ import 'package:google_sign_in/google_sign_in.dart' show GoogleSignIn;
 import 'package:firebase_auth/firebase_auth.dart';
 import "package:googleapis_auth/auth_io.dart";
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'dart:convert';
+import 'dart:convert' show json;
+import 'package:google_sign_in/google_sign_in.dart';
+import 'logInScreen.dart';
+
+final _googleSignIn = GoogleSignIn(
+  scopes: ['email'],
+);
 
 Future<Null> main() async {
-  final _googleSignIn = new GoogleSignIn(
-    scopes: ['email'],
-  );
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  var googleUser = await _googleSignIn.signIn();
-  var googleAuth = await googleUser.authentication;
-  var user = await _auth.signInWithGoogle(
-    accessToken: googleAuth.accessToken,
-    idToken: googleAuth.idToken,
-  );
-  print("signed in ${user.displayName}");
-
-  runApp(new MaterialApp(
+  runApp(MaterialApp(
     title: 'DelPack',
-    home: new FirstScreen(user.displayName),
-    theme: new ThemeData(
+    home: FirstScreen(),
+    theme: ThemeData(
       brightness: Brightness.light,
       primaryColor: Colors.white,
       accentColor: Colors.blueGrey,
@@ -35,39 +28,27 @@ Future<Null> main() async {
 }
 
 class FirstScreen extends StatelessWidget {
-  final String _loggedUser;
-
-  FirstScreen(String loggedUser):
-        _loggedUser = loggedUser;
-
   @override
   Widget build(BuildContext context) {
-    return new CameraApp(_loggedUser);
+    return CameraApp();
   }
 }
 
 class CameraApp extends StatefulWidget {
-  final String _username;
-
-  CameraApp(String username):
-    _username = username;
-
-
   @override
-  _CameraApp createState() => new _CameraApp(_username);
+  _CameraApp createState() => _CameraApp();
 }
 
 class _CameraApp extends State<CameraApp> {
-  final String _username;
+  GoogleSignInAccount _currentUser;
+  String _username;
   vision.VisionApi _visionApi;
-
-  _CameraApp(String username):
-        _username = username;
 
   File _image;
 
   Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera, maxWidth: 1200.0, maxHeight: 1200.0);
+    var image = await ImagePicker.pickImage(
+        source: ImageSource.camera, maxWidth: 1200.0, maxHeight: 1200.0);
     var bytes = image.readAsBytesSync();
     _annotateImage(bytes);
 
@@ -81,8 +62,7 @@ class _CameraApp extends State<CameraApp> {
     var imp = _visionApi.images;
     var request = vision.AnnotateImageRequest()
       ..features = [vision.Feature()..type = "DOCUMENT_TEXT_DETECTION"];
-    var image = vision.Image()
-      ..contentAsBytes = bytes;
+    var image = vision.Image()..contentAsBytes = bytes;
     request.image = image;
     var annotateRequest = vision.BatchAnnotateImagesRequest()
       ..requests = [request];
@@ -97,7 +77,7 @@ class _CameraApp extends State<CameraApp> {
   }
 
   void _deleteImageFile() {
-    if(_image != null) {
+    if (_image != null) {
       _image.delete();
       _image = null;
     }
@@ -107,9 +87,9 @@ class _CameraApp extends State<CameraApp> {
     return await rootBundle.loadString(path);
   }
 
-  void _initVision() async{
+  void _initVision() async {
     String keyTxt = await _getFileData("text/cloudsecret.json");
-    final accountCredentials = new ServiceAccountCredentials.fromJson(json.decode(keyTxt));
+    final accountCredentials = ServiceAccountCredentials.fromJson(json.decode(keyTxt));
     var scopes = ['https://www.googleapis.com/auth/cloud-vision'];
     AuthClient client;
     client = await clientViaServiceAccount(accountCredentials, scopes)
@@ -122,10 +102,35 @@ class _CameraApp extends State<CameraApp> {
     _visionApi = vision.VisionApi(client);
   }
 
+  Future<Null> _handleSignIn() async {
+    try {
+      final FirebaseAuth _auth = FirebaseAuth.instance;
+      var googleUser = await _googleSignIn.signIn();
+      var googleAuth = await googleUser.authentication;
+      var firebaseUser = await _auth.signInWithGoogle(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      setState(() {
+        _username = firebaseUser.displayName;
+      });
+    } catch (error) {
+      print(error);
+    }
+  }
+
   @override
   void initState() {
-    _initVision();
     super.initState();
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
+      setState(() {
+        _currentUser = account;
+      });
+      if (_currentUser != null) {
+        _initVision();
+      }
+    });
+    _googleSignIn.signInSilently();
   }
 
   @override
@@ -136,20 +141,24 @@ class _CameraApp extends State<CameraApp> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('Welcome $_username'),
-      ),
-      body: new Center(
-        child: _image == null
-            ? new Text('No image selected.')
-            : new Image.file(_image),
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: getImage,
-        tooltip: 'Pick Image',
-        child: new Icon(Icons.add_a_photo),
-      ),
-    );
+    if (_currentUser != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Welcome ${_username == null ? "" : _username}'),
+        ),
+        body: Center(
+          child: _image == null
+              ? Text('No image selected.')
+              : Image.file(_image),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: getImage,
+          tooltip: 'Pick Image',
+          child: Icon(Icons.add_a_photo),
+        ),
+      );
+    } else {
+      return SignInScreen(_handleSignIn);
+    }
   }
 }
