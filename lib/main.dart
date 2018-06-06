@@ -43,7 +43,6 @@ class _CameraApp extends State<CameraApp> {
   GoogleSignInAccount _currentUser;
   String _username;
   vision.VisionApi _visionApi;
-
   File _image;
 
   Future getImage() async {
@@ -60,14 +59,14 @@ class _CameraApp extends State<CameraApp> {
 
   Future<Null> _annotateImage(List<int> bytes) async {
     var imp = _visionApi.images;
-    var request = vision.AnnotateImageRequest()
-      ..features = [vision.Feature()..type = "DOCUMENT_TEXT_DETECTION"];
     var image = vision.Image()..contentAsBytes = bytes;
-    request.image = image;
-    var annotateRequest = vision.BatchAnnotateImagesRequest()
+    var request = vision.AnnotateImageRequest()
+      ..features = [vision.Feature()..type = "DOCUMENT_TEXT_DETECTION"]
+      ..image = image;
+    var annotateRequests = vision.BatchAnnotateImagesRequest()
       ..requests = [request];
     print("Request was sent at: ${DateTime.now()}");
-    var res = await imp.annotate(annotateRequest);
+    var res = await imp.annotate(annotateRequests);
     print("Response was received at: ${DateTime.now()}");
     res?.responses?.forEach((r) {
       r.textAnnotations.forEach((txt) {
@@ -91,8 +90,7 @@ class _CameraApp extends State<CameraApp> {
     String keyTxt = await _getFileData("text/cloudsecret.json");
     final accountCredentials = ServiceAccountCredentials.fromJson(json.decode(keyTxt));
     var scopes = ['https://www.googleapis.com/auth/cloud-vision'];
-    AuthClient client;
-    client = await clientViaServiceAccount(accountCredentials, scopes)
+    AuthClient client = await clientViaServiceAccount(accountCredentials, scopes)
         .then((AuthClient client) {
       // [client] is an authenticated HTTP client.
       return client;
@@ -106,11 +104,11 @@ class _CameraApp extends State<CameraApp> {
     try {
       final FirebaseAuth _auth = FirebaseAuth.instance;
       var googleUser = await _googleSignIn.signIn();
-      if(!googleUser.email.toLowerCase().contains("outbrain")) {
-        print("should be an Outbrain account!");
-        _googleSignIn.signOut();
-        return;
-      }
+//      if(!googleUser.email.toLowerCase().contains("outbrain")) {
+//        print("should be an Outbrain account!");
+//        _googleSignIn.signOut();
+//        return;
+//      }
       var googleAuth = await googleUser.authentication;
       var firebaseUser = await _auth.signInWithGoogle(
         accessToken: googleAuth.accessToken,
