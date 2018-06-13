@@ -76,8 +76,6 @@ class _CameraApp extends State<CameraApp> {
     var annotations = await _vision.annotateImage(bytes);
     var candidates = _imageTextService.getNamesCandidates(annotations);
     var employee = await _employeeDAO.getEmployee(candidates);
-    print(employee);
-    var employee = await _employeeDAO.getEmployee(candidates);
     print("Found employee: $employee");
 
     setState(() {
@@ -143,14 +141,14 @@ class _CameraApp extends State<CameraApp> {
           title: Text('Welcome ${_username == null ? "" : _username}'),
         ),
         body: Center(
-          child: _image == null
+          child: _image == null || employee == null
               ? Text('No image selected.')
               : Image.file(_image),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: _annotateImage,
           tooltip: 'Pick Image',
-          child: Icon(Icons.add_a_photo),
+          child: EmployeeScreen(employee, Image.file(_image)),
         ),
       );
     } else {
