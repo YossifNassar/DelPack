@@ -11,6 +11,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'SignInScreen.dart';
 import 'db/dao/EmployeeDAO.dart';
 import 'db/DatabaseManager.dart';
+import 'EmployeeScreen.dart';
 
 final _googleSignIn = GoogleSignIn(
   scopes: ['email'],
@@ -56,6 +57,7 @@ class _CameraApp extends State<CameraApp> {
   String _username;
   File _image;
   EmployeeDAO _employeeDAO;
+  Employee employee;
   DatabaseManager _dbManager;
   ImageTextService _imageTextService;
   Vision _vision;
@@ -73,6 +75,8 @@ class _CameraApp extends State<CameraApp> {
     var bytes = image.readAsBytesSync();
     var annotations = await _vision.annotateImage(bytes);
     var candidates = _imageTextService.getNamesCandidates(annotations);
+    var employee = await _employeeDAO.getEmployee(candidates);
+    print(employee);
     var employee = await _employeeDAO.getEmployee(candidates);
     print("Found employee: $employee");
 
@@ -133,6 +137,7 @@ class _CameraApp extends State<CameraApp> {
   @override
   Widget build(BuildContext context) {
     if (_currentUser != null) {
+      print(employee);
       return Scaffold(
         appBar: AppBar(
           title: Text('Welcome ${_username == null ? "" : _username}'),
