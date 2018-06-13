@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:delpack/image/textService/imageTextService.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/vision/v1.dart' as vision;
 import 'package:google_sign_in/google_sign_in.dart' show GoogleSignIn;
@@ -14,6 +15,8 @@ import 'logInScreen.dart';
 final _googleSignIn = GoogleSignIn(
   scopes: ['email'],
 );
+
+final ImageTextService imageTextService = new ImageTextService();
 
 Future<Null> main() async {
   runApp(MaterialApp(
@@ -69,9 +72,7 @@ class _CameraApp extends State<CameraApp> {
     var res = await imp.annotate(annotateRequests);
     print("Response was received at: ${DateTime.now()}");
     res?.responses?.forEach((r) {
-      r.textAnnotations.forEach((txt) {
-        print(txt.description);
-      });
+      imageTextService.getNamesCandidates(r);
     });
   }
 
