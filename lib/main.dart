@@ -23,7 +23,6 @@ final _googleSignIn = GoogleSignIn(
 
 final ImageTextService imageTextService = new ImageTextService();
 
-Future<Null> main() async {
 Database db;
 
 Future<Database> _initDB() async{
