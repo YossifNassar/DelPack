@@ -18,7 +18,7 @@ class ImageTextService {
 
   bool isValidName(String text) {
 
-    if (text.split(' ').length > 5 || text.length < 2) {
+    if (text.trim().split(' ').length > 5 || text.length < 2) {
      return false;
     }
 
