@@ -18,7 +18,7 @@ import 'EmployeeScreen.dart';
 
 
 final _googleSignIn = GoogleSignIn(
-  scopes: ['email'],
+  scopes: ['email','https://www.googleapis.com/auth/gmail.send'],
 );
 
 void main() {
@@ -126,25 +126,6 @@ class _CameraApp extends State<CameraApp> {
     }
   }
 
-  void handleEmailNotification() async {
-    var authHeaders = await _currentUser.authHeaders;
-    var http_client = new GoogleHttpClient(authHeaders);
-
-    var gmailClient = new GmailApi(http_client);
-
-    Message message = new Message()
-      ..payload = (new MessagePart()
-        ..body = (new MessagePartBody()
-          ..data = "hi we recieved your package")
-        ..headers = [(new MessagePartHeader()
-          ..name = "to"
-          ..value = "husam.maruf@gmail.com"
-        )]
-      );
-
-    gmailClient.users.messages.send(message, _currentUser.email);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -185,7 +166,7 @@ class _CameraApp extends State<CameraApp> {
         body: Center(
           child: _image == null || _employee == null
               ? Text('No image selected.')
-              : EmployeeScreen(_employee, Image.file(_image)),
+              : EmployeeScreen(_employee, Image.file(_image), _currentUser),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: _annotateImage,
