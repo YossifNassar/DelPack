@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:delpack/GoogleHttpClient.dart';
 import 'package:delpack/cloud/FirestoreService.dart';
+import 'package:googleapis/gmail/v1.dart';
 
 import 'cloud/Vision.dart';
 import 'image/textService/ImageTextService.dart';
@@ -124,6 +126,25 @@ class _CameraApp extends State<CameraApp> {
     } catch (error) {
       print(error);
     }
+  }
+
+  void handleEmailNotification() async {
+    var authHeaders = await _currentUser.authHeaders;
+    var http_client = new GoogleHttpClient(authHeaders);
+
+    var gmailClient = new GmailApi(http_client);
+
+    Message message = new Message()
+      ..payload = (new MessagePart()
+        ..body = (new MessagePartBody()
+          ..data = "hi we recieved your package")
+        ..headers = [(new MessagePartHeader()
+          ..name = "to"
+          ..value = "husam.maruf@gmail.com"
+        )]
+      );
+
+    gmailClient.users.messages.send(message, _currentUser.email);
   }
 
   @override
