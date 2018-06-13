@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:delpack/cloud/FirestoreService.dart';
 
 import 'cloud/Vision.dart';
-import 'image/textService/imageTextService.dart';
+import 'image/textService/ImageTextService.dart';
 import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart' show GoogleSignIn;
@@ -14,6 +14,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'SignInScreen.dart';
 import 'db/dao/EmployeeDAO.dart';
 import 'db/DatabaseManager.dart';
+import 'EmployeeScreen.dart';
 
 
 final _googleSignIn = GoogleSignIn(
@@ -66,6 +67,7 @@ class _CameraApp extends State<CameraApp> {
   String _username;
   File _image;
   EmployeeDAO _employeeDAO;
+  Employee employee;
   DatabaseManager _dbManager;
   ImageTextService _imageTextService;
   Vision _vision;
@@ -83,8 +85,8 @@ class _CameraApp extends State<CameraApp> {
     var bytes = image.readAsBytesSync();
     var annotations = await _vision.annotateImage(bytes);
     var candidates = _imageTextService.getNamesCandidates(annotations);
-    var employees = await _employeeDAO.getEmployees(candidates);
-    print(employees);
+    var employee = await _employeeDAO.getEmployee(candidates);
+    print("Found employee: $employee");
 
     setState(() {
       _deleteImageFile();
@@ -143,14 +145,15 @@ class _CameraApp extends State<CameraApp> {
   @override
   Widget build(BuildContext context) {
     if (_currentUser != null) {
+      print(employee);
       return Scaffold(
         appBar: AppBar(
           title: Text('Welcome ${_username == null ? "" : _username}'),
         ),
         body: Center(
-          child: _image == null
+          child: _image == null || employee == null
               ? Text('No image selected.')
-              : Image.file(_image),
+              : EmployeeScreen(employee, Image.file(_image)),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: _annotateImage,

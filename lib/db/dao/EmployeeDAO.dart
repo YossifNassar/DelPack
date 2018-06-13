@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:delpack/common/utils.dart';
 import '../DatabaseManager.dart';
 
 class EmployeeDAO {
@@ -16,15 +17,24 @@ class EmployeeDAO {
     });
   }
 
-  Future<List<Employee>> getEmployees(Set<String> names) async {
-    print(names);
-    var query = _buildSearchQuery(names);
-    print(query);
-    List<Map> list = await _dbManager.getDatabase().rawQuery(query);
-    print(list);
-    return list
-        .map((map) => Employee.fromMap(map))
-        .toList();
+  Future<Employee> getEmployee(Set<String> candidates) async {
+    var _candidates = candidates.map((c) => c.toLowerCase()).toSet();
+    print(_candidates);
+    var candidatesGroups = toGroup(_candidates,5);
+    var result = List<Employee>();
+    for(var group in candidatesGroups) {
+      print(group);
+      var query = _buildSearchQuery(group);
+      print(query);
+      List<Map> list = await _dbManager.getDatabase().rawQuery(query);
+      print(list);
+      result.addAll( list
+          .map((map) => Employee.fromMap(map))
+          .toList()
+      );
+    }
+    var filtered = result.where((e) => _candidates.contains(e.firstNameEn) && _candidates.contains(e.lastNameEn) || _candidates.contains(e.firstNameHe) && _candidates.contains(e.lastNameHe)).toList();
+    return filtered.isNotEmpty ? filtered[0] : null;
   }
 
   String _buildSearchQuery(Set<String> words) {

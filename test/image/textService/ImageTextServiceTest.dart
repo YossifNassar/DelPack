@@ -1,4 +1,4 @@
-import 'package:delpack/image/textService/imageTextService.dart';
+import 'package:delpack/image/textService/ImageTextService.dart';
 import "package:test/test.dart";
 
 void main() {
