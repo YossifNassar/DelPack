@@ -95,11 +95,11 @@ class _CameraApp extends State<CameraApp> {
     try {
       final FirebaseAuth _auth = FirebaseAuth.instance;
       var googleUser = await _googleSignIn.signIn();
-      if(!googleUser.email.toLowerCase().contains("outbrain")) {
-        print("should be an Outbrain account!");
-        _googleSignIn.signOut();
-        return;
-      }
+//      if(!googleUser.email.toLowerCase().contains("outbrain")) {
+//        print("should be an Outbrain account!");
+//        _googleSignIn.signOut();
+//        return;
+//      }
       var googleAuth = await googleUser.authentication;
       var firebaseUser = await _auth.signInWithGoogle(
         accessToken: googleAuth.accessToken,
@@ -134,6 +134,8 @@ class _CameraApp extends State<CameraApp> {
 
   @override
   Widget build(BuildContext context) {
+    employee = employee == null ? Employee(firstNameEn: 'firstname', lastNameEn: 'lastname',
+        firstNameHe: 'fname_he', lastNameHe: 'lname_he', email: 'emaillonglong.email.com') : employee;
     if (_currentUser != null) {
       print(employee);
       return Scaffold(
