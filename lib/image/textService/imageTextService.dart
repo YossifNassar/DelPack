@@ -1,10 +1,10 @@
 import 'package:googleapis/vision/v1.dart';
 
 class ImageTextService {
-  Set<String> getNamesCandidates(AnnotateImageResponse r) {
+  Set<String> getNamesCandidates(List<EntityAnnotation> textAnnotations) {
     Set<String> validName = new Set();
 
-    r.textAnnotations.forEach((txt) {
+    textAnnotations.forEach((txt) {
       String text = txt.description;
 
       if (isValidName(text)){
