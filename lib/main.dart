@@ -57,7 +57,7 @@ class _CameraApp extends State<CameraApp> {
   String _username;
   File _image;
   EmployeeDAO _employeeDAO;
-  Employee employee;
+  Employee _employee;
   DatabaseManager _dbManager;
   ImageTextService _imageTextService;
   Vision _vision;
@@ -72,11 +72,14 @@ class _CameraApp extends State<CameraApp> {
   Future _annotateImage() async {
     var image = await ImagePicker.pickImage(
         source: ImageSource.camera, maxWidth: 1200.0, maxHeight: 1200.0);
+    if(image == null) {
+      return;
+    }
     var bytes = image.readAsBytesSync();
     var annotations = await _vision.annotateImage(bytes);
     var candidates = _imageTextService.getNamesCandidates(annotations);
-    var employee = await _employeeDAO.getEmployee(candidates);
-    print("Found employee: $employee");
+    _employee = await _employeeDAO.getEmployee(candidates);
+    print("Found employee: $_employee");
 
     setState(() {
       _deleteImageFile();
@@ -135,15 +138,15 @@ class _CameraApp extends State<CameraApp> {
   @override
   Widget build(BuildContext context) {
     if (_currentUser != null) {
-      print(employee);
+      print(_employee);
       return Scaffold(
         appBar: AppBar(
           title: Text('Welcome ${_username == null ? "" : _username}'),
         ),
         body: Center(
-          child: _image == null || employee == null
+          child: _image == null || _employee == null
               ? Text('No image selected.')
-              : EmployeeScreen(employee, Image.file(_image)),
+              : EmployeeScreen(_employee, Image.file(_image)),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: _annotateImage,
