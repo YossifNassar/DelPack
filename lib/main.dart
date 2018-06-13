@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:delpack/GoogleHttpClient.dart';
 import 'package:delpack/cloud/FirestoreService.dart';
 import 'package:googleapis/gmail/v1.dart';
-
 import 'cloud/Vision.dart';
 import 'image/textService/ImageTextService.dart';
 import 'dart:core';
@@ -26,12 +24,6 @@ final _googleSignIn = GoogleSignIn(
 void main() {
   final dbManager = DatabaseManager();
   final imageTextService = ImageTextService();
-  employeesCollection.snapshots().forEach((snapshot){
-    snapshot.documents.forEach((doc){
-      print(doc.documentID);
-    });
-
-  });
 
   runApp(MaterialApp(
     title: 'DelPack',
@@ -73,12 +65,14 @@ class _CameraApp extends State<CameraApp> {
   DatabaseManager _dbManager;
   ImageTextService _imageTextService;
   Vision _vision;
+  List<Employee> _employees;
 
   _CameraApp(dbManager,imageTextService) {
     this._dbManager = dbManager;
     this._imageTextService = imageTextService;
     _employeeDAO = EmployeeDAO(_dbManager);
     _vision = Vision();
+//    _dbManager.insertEmployee(Employee.fromMap({"lname_en": "nassar", "fname_he": "sdgs", "lname_he": "sdgfsdg", "fname_en": "yossif", "email": "ynassar@outbrain.com" }));
   }
 
   Future _annotateImage() async {
@@ -89,8 +83,12 @@ class _CameraApp extends State<CameraApp> {
     }
     var bytes = image.readAsBytesSync();
     var annotations = await _vision.annotateImage(bytes);
-    var candidates = _imageTextService.getNamesCandidates(annotations);
-    _employee = await _employeeDAO.getEmployee(candidates);
+    var candidates = _imageTextService.getNamesCandidates(annotations).map((c) => c.toLowerCase()).toSet();
+    print(candidates);
+    print(_employees);
+    var filtered = _employees.where((e) => candidates.contains(e.firstNameEn) && candidates.contains(e.lastNameEn) || candidates.contains(e.firstNameHe) && candidates.contains(e.lastNameHe)).toList();
+    _employee = filtered.isNotEmpty ? filtered[0] : null;
+//    _employee = await _employeeDAO.getEmployee(candidates);
     print("Found employee: $_employee");
 
     setState(() {
@@ -157,6 +155,15 @@ class _CameraApp extends State<CameraApp> {
     });
     _googleSignIn.signInSilently();
     _handleSignIn();
+    employeesCollection.snapshots().forEach((snapshot) async {
+      _employees = new List<Employee>();
+      snapshot.documents.forEach((doc){
+        print(doc.data);
+        print(Employee.fromMap(doc.data));
+//        _employeeDAO.insertEmployee(Employee.fromMap(doc.data));
+        _employees.add(Employee.fromMap(doc.data));
+      });
+    });
   }
 
   @override
