@@ -169,6 +169,7 @@ class _CameraApp extends State<CameraApp> {
   @override
   Widget build(BuildContext context) {
     if (_currentUser != null) {
+      _employee = _employee == null ? Employee(firstNameEn: 'firstname', lastNameEn: 'lastname', firstNameHe: 'fname_he', lastNameHe: 'lname_he', email: 'emaillonglong.email.com') : _employee;
       print(_employee);
       return Scaffold(
         appBar: AppBar(
