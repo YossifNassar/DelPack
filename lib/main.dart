@@ -143,12 +143,12 @@ class _CameraApp extends State<CameraApp> {
         body: Center(
           child: _image == null || employee == null
               ? Text('No image selected.')
-              : Image.file(_image),
+              : EmployeeScreen(employee, Image.file(_image)),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: _annotateImage,
           tooltip: 'Pick Image',
-          child: EmployeeScreen(employee, Image.file(_image)),
+          child: Icon(Icons.add_a_photo),
         ),
       );
     } else {
