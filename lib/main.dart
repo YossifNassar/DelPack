@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:googleapis/vision/v1.dart' as vision;
 import 'package:google_sign_in/google_sign_in.dart' show GoogleSignIn;
@@ -9,13 +10,42 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert' show json;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'logInScreen.dart';
+import 'SignInScreen.dart';
+import 'EmployeeDAO.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final _googleSignIn = GoogleSignIn(
   scopes: ['email'],
 );
 
-Future<Null> main() async {
+Database db;
+
+Future<Database> _initDB() async{
+  // Get a location using path_provider
+  Directory documentsDirectory = await getApplicationDocumentsDirectory();
+  String path = "${documentsDirectory.path}/demo.db";
+  print(path);
+//  await deleteDatabase(path);
+  db = await openDatabase(path, version: 1,
+      onCreate: (Database db, int version) async {
+        // When creating the db, create the table
+        await db.execute(
+            "CREATE TABLE Test (id INTEGER PRIMARY KEY, fname_en TEXT, lname_en TEXT, fname_he TEXT, lname_he TEXT, email TEXT)");
+      });
+//  var employeeDAO = EmployeeDAO(db);
+//  var employee = Employee('yossif','nassar','יוסף','נסאר','n.yossif@gmail.com');
+//  await employeeDAO.insertEmployee(employee);
+//  List<Employee> employees = await employeeDAO.getEmployees(['yossif', 'נסאר']);
+//  print(employees);
+//  db.close();
+}
+
+
+void main() {
+  _initDB();
+
   runApp(MaterialApp(
     title: 'DelPack',
     home: FirstScreen(),
@@ -44,6 +74,7 @@ class _CameraApp extends State<CameraApp> {
   String _username;
   vision.VisionApi _visionApi;
   File _image;
+  EmployeeDAO _employeeDAO;
 
   Future getImage() async {
     var image = await ImagePicker.pickImage(
@@ -68,11 +99,16 @@ class _CameraApp extends State<CameraApp> {
     print("Request was sent at: ${DateTime.now()}");
     var res = await imp.annotate(annotateRequests);
     print("Response was received at: ${DateTime.now()}");
+    var candidates = List<String>();
     res?.responses?.forEach((r) {
       r.textAnnotations.forEach((txt) {
-        print(txt.description);
+        var sentence = txt.description;
+        print(sentence);
+        candidates.add(sentence);
       });
     });
+
+//    var employees = _employeeDAO.getEmployees(candidates);
   }
 
   void _deleteImageFile() {
@@ -134,11 +170,14 @@ class _CameraApp extends State<CameraApp> {
       }
     });
     _googleSignIn.signInSilently();
+//    _handleSignIn();
+    _employeeDAO = EmployeeDAO(db);
   }
 
   @override
   void dispose() {
     _deleteImageFile();
+    _employeeDAO.dispose();
     super.dispose();
   }
 
