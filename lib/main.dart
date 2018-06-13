@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:delpack/image/textService/imageTextService.dart';
 import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:googleapis/vision/v1.dart' as vision;
@@ -20,6 +21,9 @@ final _googleSignIn = GoogleSignIn(
   scopes: ['email'],
 );
 
+final ImageTextService imageTextService = new ImageTextService();
+
+Future<Null> main() async {
 Database db;
 
 Future<Database> _initDB() async{
@@ -101,11 +105,7 @@ class _CameraApp extends State<CameraApp> {
     print("Response was received at: ${DateTime.now()}");
     var candidates = List<String>();
     res?.responses?.forEach((r) {
-      r.textAnnotations.forEach((txt) {
-        var sentence = txt.description;
-        print(sentence);
-        candidates.add(sentence);
-      });
+      imageTextService.getNamesCandidates(r);
     });
 
 //    var employees = _employeeDAO.getEmployees(candidates);
