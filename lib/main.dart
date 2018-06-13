@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:delpack/cloud/FirestoreService.dart';
+
 import 'cloud/Vision.dart';
 import 'image/textService/ImageTextService.dart';
 import 'dart:core';
@@ -13,6 +16,7 @@ import 'db/dao/EmployeeDAO.dart';
 import 'db/DatabaseManager.dart';
 import 'EmployeeScreen.dart';
 
+
 final _googleSignIn = GoogleSignIn(
   scopes: ['email'],
 );
@@ -20,6 +24,12 @@ final _googleSignIn = GoogleSignIn(
 void main() {
   final dbManager = DatabaseManager();
   final imageTextService = ImageTextService();
+  employeesCollection.snapshots().forEach((snapshot){
+    snapshot.documents.forEach((doc){
+      print(doc.documentID);
+    });
+
+  });
 
   runApp(MaterialApp(
     title: 'DelPack',
