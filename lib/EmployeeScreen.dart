@@ -30,7 +30,7 @@ class EmployeeScreen extends StatelessWidget {
                         child: Row(
                           children: <Widget>[
                             new Text('Deliver To:',
-                                style: new TextStyle(color: Colors.blue)),
+                                style: new TextStyle(color: Colors.blueGrey)),
                             Padding(
                                 padding: new EdgeInsets.only(left: 10.0),
                                 child: new Text(
@@ -44,7 +44,7 @@ class EmployeeScreen extends StatelessWidget {
                           child: Row(
                             children: <Widget>[
                               new Text('Email:',
-                                  style: new TextStyle(color: Colors.blue)),
+                                  style: new TextStyle(color: Colors.blueGrey)),
                               Padding(
                                   padding: new EdgeInsets.only(left: 10.0),
                                   child: new Text('${_employee.email}')
@@ -65,7 +65,7 @@ class EmployeeScreen extends StatelessWidget {
                               notifyUser();
                             },
                             child: new Text('Deliver'),
-                            color: Colors.blue,
+                            color: Colors.blueGrey,
                             textColor: Colors.white
                           ),
                           new RaisedButton(
@@ -73,7 +73,7 @@ class EmployeeScreen extends StatelessWidget {
                                 notifyUser();
                               },
                               child: new Text('Notify'),
-                              color: Colors.blue,
+                              color: Colors.blueGrey,
                               textColor: Colors.white)
                         ],
                       ))
@@ -85,18 +85,5 @@ class EmployeeScreen extends StatelessWidget {
   void notifyUser() {
     print('notify');
     return;
-  }
-}
-
-class EmployeeData extends StatelessWidget {
-  final Employee _employee;
-
-  const EmployeeData(this._employee);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[new Text(this._employee.firstNameEn)],
-    );
   }
 }
