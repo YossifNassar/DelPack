@@ -18,7 +18,7 @@ import 'EmployeeScreen.dart';
 
 
 final _googleSignIn = GoogleSignIn(
-  scopes: ['email'],
+  scopes: ['email','https://www.googleapis.com/auth/gmail.compose'],
 );
 
 void main() {
