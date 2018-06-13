@@ -1,9 +1,7 @@
 import 'dart:convert';
-
 import 'package:delpack/GoogleHttpClient.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/gmail/v1.dart';
-
 import 'db/dao/EmployeeDAO.dart';
 import 'package:flutter/material.dart';
 
@@ -98,20 +96,27 @@ class EmployeeScreen extends StatelessWidget {
     print('handle');
     var authHeaders = await _currentUser.authHeaders;
     var httpClient = new GoogleHttpClient(authHeaders);
-
     var gmailClient = new GmailApi(httpClient);
+    var from = _currentUser.email;
+    var to = _employee.email;
+    var notifier = _currentUser.displayName;
+    var subject = 'Delpack: You have got a package';
+    var message = "Notified by: $notifier";
+    var content = '''
+Content-Type: text/html; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+to: $to
+from: $from
+subject: $subject
 
-    Message message = new Message()
-    ..raw = base64.encode(_currentUser.email)
-      ..payload = (new MessagePart()
-        ..body = (new MessagePartBody()
-          ..data = "hi we recieved your package")
-        ..headers = [(new MessagePartHeader()
-          ..name = "To"
-          ..value = "apeleg@outbrain.com"
-        )]
-      );
+$message''';
+
+    var bytes = utf8.encode(content);
+    var base64 = base64Encode(bytes);
+    Message msg = new Message()
+    ..raw = base64;
     print( '_currentUser ${_currentUser.email} ${_currentUser.authentication}');
-    gmailClient.users.messages.send(message, _currentUser.email);
+    gmailClient.users.messages.send(msg, _currentUser.email);
   }
 }
