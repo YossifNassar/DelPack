@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'cloud/Vision.dart';
-import 'image/textService/imageTextService.dart';
+import 'image/textService/ImageTextService.dart';
 import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart' show GoogleSignIn;
@@ -73,8 +73,8 @@ class _CameraApp extends State<CameraApp> {
     var bytes = image.readAsBytesSync();
     var annotations = await _vision.annotateImage(bytes);
     var candidates = _imageTextService.getNamesCandidates(annotations);
-    var employees = await _employeeDAO.getEmployees(candidates);
-    print(employees);
+    var employee = await _employeeDAO.getEmployee(candidates);
+    print("Found employee: $employee");
 
     setState(() {
       _deleteImageFile();
