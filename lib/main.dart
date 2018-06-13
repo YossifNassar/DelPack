@@ -11,6 +11,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'SignInScreen.dart';
 import 'db/dao/EmployeeDAO.dart';
 import 'db/DatabaseManager.dart';
+import 'EmployeeScreen.dart';
 
 final _googleSignIn = GoogleSignIn(
   scopes: ['email'],
@@ -56,6 +57,7 @@ class _CameraApp extends State<CameraApp> {
   String _username;
   File _image;
   EmployeeDAO _employeeDAO;
+  Employee employee;
   DatabaseManager _dbManager;
   ImageTextService _imageTextService;
   Vision _vision;
@@ -75,7 +77,8 @@ class _CameraApp extends State<CameraApp> {
     var candidates = _imageTextService.getNamesCandidates(annotations);
     var employees = await _employeeDAO.getEmployees(candidates);
     print(employees);
-
+    employee = employees.length > 0 ? employees[0] : new Employee(firstNameEn:'name', lastNameEn: 'lastname',
+        firstNameHe: 'fname_he', lastNameHe: 'lname_he', email: 'email');
     setState(() {
       _deleteImageFile();
       _image = image;
@@ -93,11 +96,11 @@ class _CameraApp extends State<CameraApp> {
     try {
       final FirebaseAuth _auth = FirebaseAuth.instance;
       var googleUser = await _googleSignIn.signIn();
-      if(!googleUser.email.toLowerCase().contains("outbrain")) {
-        print("should be an Outbrain account!");
-        _googleSignIn.signOut();
-        return;
-      }
+//      if(!googleUser.email.toLowerCase().contains("outbrain")) {
+//        print("should be an Outbrain account!");
+//        _googleSignIn.signOut();
+//        return;
+//      }
       var googleAuth = await googleUser.authentication;
       var firebaseUser = await _auth.signInWithGoogle(
         accessToken: googleAuth.accessToken,
@@ -133,14 +136,15 @@ class _CameraApp extends State<CameraApp> {
   @override
   Widget build(BuildContext context) {
     if (_currentUser != null) {
+      print(employee);
       return Scaffold(
         appBar: AppBar(
           title: Text('Welcome ${_username == null ? "" : _username}'),
         ),
         body: Center(
-          child: _image == null
+          child: _image == null || employee == null
               ? Text('No image selected.')
-              : Image.file(_image),
+              : EmployeeScreen(employee, Image.file(_image)),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: _annotateImage,
