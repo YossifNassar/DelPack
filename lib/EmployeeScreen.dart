@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:delpack/GoogleHttpClient.dart';
+import 'package:delpack/utils/Toast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/gmail/v1.dart';
 import 'db/dao/EmployeeDAO.dart';
@@ -67,7 +68,7 @@ class EmployeeScreen extends StatelessWidget {
                         children: <Widget>[
                           new RaisedButton(
                             onPressed: () {
-                              notifyUser();
+                              notifyUser("deliver");
                             },
                             child: new Text('Deliver'),
                             color: Colors.blueGrey,
@@ -75,7 +76,7 @@ class EmployeeScreen extends StatelessWidget {
                           ),
                           new RaisedButton(
                               onPressed: () {
-                                notifyUser();
+                                notifyUser("notify");
                               },
                               child: new Text('Notify'),
                               color: Colors.blueGrey,
@@ -87,13 +88,11 @@ class EmployeeScreen extends StatelessWidget {
             )));
   }
 
-  void notifyUser() {
-    print('notify');
-    handleEmailNotification();
+  void notifyUser(String type) {
+    handleEmailNotification(type);
   }
 
-  void handleEmailNotification() async {
-    print('handle');
+  void handleEmailNotification(String type) async {
     var authHeaders = await _currentUser.authHeaders;
     var httpClient = new GoogleHttpClient(authHeaders);
     var gmailClient = new GmailApi(httpClient);
@@ -101,7 +100,7 @@ class EmployeeScreen extends StatelessWidget {
     var to = _employee.email;
     var notifier = _currentUser.displayName;
     var subject = 'Delpack: You have got a package';
-    var message = "Notified by: $notifier";
+    var message = type == 'notify' ? "you'v got a package, Notified by: $notifier" : "I'll bring you the package, Notified by: $notifier";
     var content = '''
 Content-Type: text/html; charset="us-ascii"
 MIME-Version: 1.0
@@ -117,6 +116,12 @@ $message''';
     Message msg = new Message()
     ..raw = base64;
     print( '_currentUser ${_currentUser.email} ${_currentUser.authentication}');
-    gmailClient.users.messages.send(msg, _currentUser.email);
+
+    try {
+      await gmailClient.users.messages.send(msg, _currentUser.email);
+      ToastUtil.showToast('Message sent');
+    } catch(e) {
+      ToastUtil.showToast('An error accure');
+    }
   }
 }

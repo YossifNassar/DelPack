@@ -18,6 +18,7 @@ dependencies:
   shared_preferences: any
   path_provider: any
   sqflite: any
+  fluttertoast: ^2.0.3
 
 dev_dependencies:
   flutter_test:
