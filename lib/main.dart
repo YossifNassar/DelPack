@@ -211,7 +211,7 @@ class _CameraApp extends State<CameraApp> {
         ),
         body: Center(
           child: (_image == null || _employee == null) && loading ? new Loader() :
-          _image == null || _employee == null ? Text('No image selected.')
+          _image == null || _employee == null ? Text('Select an image')
               : EmployeeScreen(_employee, Image.file(_image), _image, _currentUser),
         ),
         floatingActionButton: FloatingActionButton(

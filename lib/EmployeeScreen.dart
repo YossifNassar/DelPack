@@ -38,7 +38,7 @@ class _EmployeeScreen extends State<EmployeeScreen> {
   @override
   Widget build(BuildContext context) {
     if(!this._showImage) {
-      return new Text('Message has been sent');
+      return new Text('Select an image');
     }
     return Scaffold(
         body: DefaultTextStyle(
