@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:delpack/cloud/FirestoreService.dart';
 import 'package:delpack/loader.dart';
+import 'package:flutter/services.dart';
 import 'cloud/Vision.dart';
 import 'image/textService/ImageTextService.dart';
 import 'dart:core';
@@ -14,7 +15,8 @@ import 'SignInScreen.dart';
 import 'db/dao/EmployeeDAO.dart';
 import 'db/DatabaseManager.dart';
 import 'EmployeeScreen.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:delpack/utils/Toast.dart';
+
 
 final _googleSignIn = GoogleSignIn(
   scopes: ['email','https://www.googleapis.com/auth/gmail.compose'],
@@ -136,11 +138,11 @@ class _CameraApp extends State<CameraApp> {
     try {
       final FirebaseAuth _auth = FirebaseAuth.instance;
       var googleUser = await _googleSignIn.signIn();
-//      if(!googleUser.email.toLowerCase().contains("outbrain")) {
-//        print("should be an Outbrain account!");
-//        _googleSignIn.signOut();
-//        return;
-//      }
+      if(!googleUser.email.toLowerCase().contains("outbrain")) {
+        print("should be an Outbrain account!");
+        _googleSignIn.signOut();
+        return;
+      }
       var googleAuth = await googleUser.authentication;
       var firebaseUser = await _auth.signInWithGoogle(
         accessToken: googleAuth.accessToken,
@@ -157,6 +159,9 @@ class _CameraApp extends State<CameraApp> {
   Future<Null> _handleSignOut() async {
     await _googleSignIn.signOut();
     await _googleSignIn.disconnect();
+    _currentUser = null;
+    ToastUtil.showToast('You Signed Out');
+    _employee = null;
   }
 
   @override
@@ -194,6 +199,9 @@ class _CameraApp extends State<CameraApp> {
       return Scaffold(
         appBar: AppBar(
           title: Text('Welcome ${_username == null ? "" : _username}'),
+          actions: <Widget>[      // Add 3 lines from here...
+            new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: _handleSignOut),
+          ],                      // ... to here.
         ),
         body: Center(
           child: (_image == null || _employee == null) && loading ? new Loader() :
