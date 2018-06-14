@@ -16,6 +16,7 @@ import 'db/dao/EmployeeDAO.dart';
 import 'db/DatabaseManager.dart';
 import 'EmployeeScreen.dart';
 import 'package:delpack/utils/Toast.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 
 final _googleSignIn = GoogleSignIn(
@@ -159,9 +160,14 @@ class _CameraApp extends State<CameraApp> {
   Future<Null> _handleSignOut() async {
     await _googleSignIn.signOut();
     await _googleSignIn.disconnect();
-    _currentUser = null;
     ToastUtil.showToast('You Signed Out');
-    _employee = null;
+    setState(() {
+      loading = false;
+      _deleteImageFile();
+      _image = null;
+      _employee = null;
+      _currentUser = null;
+    });
   }
 
   @override
