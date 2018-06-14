@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:delpack/cloud/FirestoreService.dart';
+import 'package:flutter/services.dart';
 import 'cloud/Vision.dart';
 import 'image/textService/ImageTextService.dart';
 import 'dart:core';
@@ -18,10 +19,11 @@ final _googleSignIn = GoogleSignIn(
   scopes: ['email','https://www.googleapis.com/auth/gmail.compose'],
 );
 
+
+
 void main() {
   final dbManager = DatabaseManager();
   final imageTextService = ImageTextService();
-
   runApp(MaterialApp(
     title: 'DelPack',
     home: FirstScreen(dbManager,imageTextService),
@@ -108,16 +110,19 @@ class _CameraApp extends State<CameraApp> {
       _image = null;
     }
   }
+  void _pushDeliverHistory() {
+    print("you pushed the delivery histroy");
+  }
 
   Future<Null> _handleSignIn() async {
     try {
       final FirebaseAuth _auth = FirebaseAuth.instance;
       var googleUser = await _googleSignIn.signIn();
-      if(!googleUser.email.toLowerCase().contains("outbrain")) {
-        print("should be an Outbrain account!");
-        _googleSignIn.signOut();
-        return;
-      }
+//      if(!googleUser.email.toLowerCase().contains("outbrain")) {
+//        print("should be an Outbrain account!");
+//        _googleSignIn.signOut();
+//        return;
+//      }
       var googleAuth = await googleUser.authentication;
       var firebaseUser = await _auth.signInWithGoogle(
         accessToken: googleAuth.accessToken,
@@ -166,6 +171,9 @@ class _CameraApp extends State<CameraApp> {
       return Scaffold(
         appBar: AppBar(
           title: Text('Welcome ${_username == null ? "" : _username}'),
+          actions: <Widget>[      // Add 3 lines from here...
+            new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: _pushDeliverHistory),
+          ],                      // ... to here.
         ),
         body: Center(
           child: _image == null || _employee == null
