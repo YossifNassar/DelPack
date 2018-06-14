@@ -63,6 +63,7 @@ class _CameraApp extends State<CameraApp> {
   ImageTextService _imageTextService;
   Vision _vision;
   List<Employee> _employees;
+  bool loading = false;
 
   _CameraApp(dbManager,imageTextService) {
     this._dbManager = dbManager;
@@ -72,11 +73,16 @@ class _CameraApp extends State<CameraApp> {
   }
 
   Future _annotateImage() async {
+    setState(() {
+      loading = true;
+    });
+
     var image = await ImagePicker.pickImage(
         source: ImageSource.camera, maxWidth: 1200.0, maxHeight: 1200.0);
     if(image == null) {
       return;
     }
+
     var bytes = image.readAsBytesSync();
     var annotations = await _vision.annotateImage(bytes);
     var candidates = _imageTextService.getNamesCandidates(annotations).map((c) => c.toLowerCase()).toSet();
@@ -87,6 +93,7 @@ class _CameraApp extends State<CameraApp> {
     print("Found employee: $_employee");
 
     setState(() {
+      loading = false;
       _deleteImageFile();
       _image = image;
     });
@@ -168,8 +175,9 @@ class _CameraApp extends State<CameraApp> {
           title: Text('Welcome ${_username == null ? "" : _username}'),
         ),
         body: Center(
-          child: _image == null || _employee == null
-              ? Text('No image selected.')
+          child: (_image == null || _employee == null) && loading ? Text(
+              'Processing your request please wait...') :
+          _image == null || _employee == null ? Text('No image selected.')
               : EmployeeScreen(_employee, Image.file(_image), _currentUser),
         ),
         floatingActionButton: FloatingActionButton(
