@@ -15,6 +15,8 @@ import 'SignInScreen.dart';
 import 'db/dao/EmployeeDAO.dart';
 import 'db/DatabaseManager.dart';
 import 'EmployeeScreen.dart';
+import 'package:delpack/utils/Toast.dart';
+
 
 final _googleSignIn = GoogleSignIn(
   scopes: ['email','https://www.googleapis.com/auth/gmail.compose'],
@@ -117,9 +119,7 @@ class _CameraApp extends State<CameraApp> {
       _image = null;
     }
   }
-  void _pushDeliverHistory() {
-    print("you pushed the delivery histroy");
-  }
+
 
   Future<Null> _handleSignIn() async {
     try {
@@ -146,6 +146,9 @@ class _CameraApp extends State<CameraApp> {
   Future<Null> _handleSignOut() async {
     await _googleSignIn.signOut();
     await _googleSignIn.disconnect();
+    _currentUser = null;
+    ToastUtil.showToast('You Signed Out');
+    _employee = null;
   }
 
   @override
@@ -184,7 +187,7 @@ class _CameraApp extends State<CameraApp> {
         appBar: AppBar(
           title: Text('Welcome ${_username == null ? "" : _username}'),
           actions: <Widget>[      // Add 3 lines from here...
-            new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: _pushDeliverHistory),
+            new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: _handleSignOut),
           ],                      // ... to here.
         ),
         body: Center(
