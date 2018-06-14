@@ -1,17 +1,19 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:delpack/common/GoogleHttpClient.dart';
 import 'package:delpack/utils/Toast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/gmail/v1.dart';
 import 'db/dao/EmployeeDAO.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show ByteData, rootBundle;
 
 class EmployeeScreen extends StatelessWidget {
   final Employee _employee;
-  final Image _imageFile;
+  final File _imageFile;
   final GoogleSignInAccount _currentUser;
-
-  const EmployeeScreen(this._employee, this._imageFile, this._currentUser);
+  final Image _image;
+  const EmployeeScreen(this._employee, this._image, this._imageFile, this._currentUser);
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,7 @@ class EmployeeScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 children: <Widget>[
-                  new Image(image: this._imageFile.image, width: 200.0),
+                  new Image(image: this._image.image, width: 200.0),
                   Column(
                     children: <Widget>[
                       Padding(
@@ -68,7 +70,7 @@ class EmployeeScreen extends StatelessWidget {
                         children: <Widget>[
                           new RaisedButton(
                             onPressed: () {
-                              notifyUser("deliver");
+                              notifyUser(Delivery.deliver);
                             },
                             child: new Text('Deliver'),
                             color: Colors.blueGrey,
@@ -76,7 +78,7 @@ class EmployeeScreen extends StatelessWidget {
                           ),
                           new RaisedButton(
                               onPressed: () {
-                                notifyUser("notify");
+                                notifyUser(Delivery.notify);
                               },
                               child: new Text('Notify'),
                               color: Colors.blueGrey,
@@ -88,23 +90,28 @@ class EmployeeScreen extends StatelessWidget {
             )));
   }
 
-  void notifyUser(String type) {
+  void notifyUser(Delivery type) {
     handleEmailNotification(type);
   }
 
-  void handleEmailNotification(String type) async {
+  void handleEmailNotification(Delivery type) async {
     var authHeaders = await _currentUser.authHeaders;
     var httpClient = new GoogleHttpClient(authHeaders);
     var gmailClient = new GmailApi(httpClient);
+
+
+    List<int> imageBytes = _imageFile.readAsBytesSync();
+    String base64Image = BASE64.encode(imageBytes);
+
     var from = _currentUser.email;
     var to = _employee.email;
     var notifier = _currentUser.displayName;
-    var subject = 'Delpack: You have got a package';
-    var message = type == 'notify' ? "you'v got a package, Notified by: $notifier" : "I'll bring you the package, Notified by: $notifier";
+    var subject = 'Delpack ' + (type == Delivery.notify ? "You have got a package, Notified by: $notifier" : "I'll bring you the package, Notified by: $notifier");
+    var message = base64Image;
     var content = '''
-Content-Type: text/html; charset="us-ascii"
+Content-Type: image/bmp"
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 to: $to
 from: $from
 subject: $subject
@@ -117,6 +124,7 @@ $message''';
     ..raw = base64;
     print( '_currentUser ${_currentUser.email} ${_currentUser.authentication}');
 
+
     try {
       await gmailClient.users.messages.send(msg, _currentUser.email);
       ToastUtil.showToast('Message sent');
@@ -125,3 +133,8 @@ $message''';
     }
   }
 }
+
+enum Delivery{
+  deliver, notify
+}
+

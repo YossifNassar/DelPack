@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:delpack/cloud/FirestoreService.dart';
+import 'package:delpack/loader.dart';
 import 'package:flutter/services.dart';
 import 'cloud/Vision.dart';
 import 'image/textService/ImageTextService.dart';
@@ -19,11 +20,10 @@ final _googleSignIn = GoogleSignIn(
   scopes: ['email','https://www.googleapis.com/auth/gmail.compose'],
 );
 
-
-
 void main() {
   final dbManager = DatabaseManager();
   final imageTextService = ImageTextService();
+
   runApp(MaterialApp(
     title: 'DelPack',
     home: FirstScreen(dbManager,imageTextService),
@@ -65,6 +65,7 @@ class _CameraApp extends State<CameraApp> {
   ImageTextService _imageTextService;
   Vision _vision;
   List<Employee> _employees;
+  bool loading = false;
 
   _CameraApp(dbManager,imageTextService) {
     this._dbManager = dbManager;
@@ -74,11 +75,16 @@ class _CameraApp extends State<CameraApp> {
   }
 
   Future _annotateImage() async {
+    setState(() {
+      loading = true;
+    });
+
     var image = await ImagePicker.pickImage(
         source: ImageSource.camera, maxWidth: 1200.0, maxHeight: 1200.0);
     if(image == null) {
       return;
     }
+
     var bytes = image.readAsBytesSync();
     var annotations = await _vision.annotateImage(bytes);
     var candidates = _imageTextService.getNamesCandidates(annotations).map((c) => c.toLowerCase()).toSet();
@@ -89,6 +95,7 @@ class _CameraApp extends State<CameraApp> {
     print("Found employee: $_employee");
 
     setState(() {
+      loading = false;
       _deleteImageFile();
       _image = image;
     });
@@ -118,11 +125,11 @@ class _CameraApp extends State<CameraApp> {
     try {
       final FirebaseAuth _auth = FirebaseAuth.instance;
       var googleUser = await _googleSignIn.signIn();
-//      if(!googleUser.email.toLowerCase().contains("outbrain")) {
-//        print("should be an Outbrain account!");
-//        _googleSignIn.signOut();
-//        return;
-//      }
+      if(!googleUser.email.toLowerCase().contains("outbrain")) {
+        print("should be an Outbrain account!");
+        _googleSignIn.signOut();
+        return;
+      }
       var googleAuth = await googleUser.authentication;
       var firebaseUser = await _auth.signInWithGoogle(
         accessToken: googleAuth.accessToken,
@@ -134,6 +141,11 @@ class _CameraApp extends State<CameraApp> {
     } catch (error) {
       print(error);
     }
+  }
+
+  Future<Null> _handleSignOut() async {
+    await _googleSignIn.signOut();
+    await _googleSignIn.disconnect();
   }
 
   @override
@@ -176,9 +188,9 @@ class _CameraApp extends State<CameraApp> {
           ],                      // ... to here.
         ),
         body: Center(
-          child: _image == null || _employee == null
-              ? Text('No image selected.')
-              : EmployeeScreen(_employee, Image.file(_image), _currentUser),
+          child: (_image == null || _employee == null) && loading ? new Loader() :
+          _image == null || _employee == null ? Text('No image selected.')
+              : EmployeeScreen(_employee, Image.file(_image), _image, _currentUser),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: _annotateImage,
