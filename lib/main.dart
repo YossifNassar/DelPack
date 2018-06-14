@@ -139,11 +139,11 @@ class _CameraApp extends State<CameraApp> {
     try {
       final FirebaseAuth _auth = FirebaseAuth.instance;
       var googleUser = await _googleSignIn.signIn();
-      if(!googleUser.email.toLowerCase().contains("outbrain")) {
-        print("should be an Outbrain account!");
-        _googleSignIn.signOut();
-        return;
-      }
+//      if(!googleUser.email.toLowerCase().contains("outbrain")) {
+//        print("should be an Outbrain account!");
+//        _googleSignIn.signOut();
+//        return;
+//      }
       var googleAuth = await googleUser.authentication;
       var firebaseUser = await _auth.signInWithGoogle(
         accessToken: googleAuth.accessToken,

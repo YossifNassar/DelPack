@@ -8,7 +8,7 @@ import 'db/dao/EmployeeDAO.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show ByteData, rootBundle;
 
-class EmployeeScreen extends StatelessWidget {
+class EmployeeScreen extends StatefulWidget {
   final Employee _employee;
   final File _imageFile;
   final GoogleSignInAccount _currentUser;
@@ -16,7 +16,30 @@ class EmployeeScreen extends StatelessWidget {
   const EmployeeScreen(this._employee, this._image, this._imageFile, this._currentUser);
 
   @override
+  _EmployeeScreen createState() => _EmployeeScreen(this._employee, this._image, this._imageFile, this._currentUser);
+}
+
+class _EmployeeScreen extends State<EmployeeScreen> {
+  Employee _employee;
+  File _imageFile;
+  GoogleSignInAccount _currentUser;
+  Image _image;
+  bool _showImage;
+
+  _EmployeeScreen(_employee,_image,_imageFile, _currentUser) {
+    this._employee = _employee;
+    this._imageFile = _imageFile;
+    this._currentUser = _currentUser;
+    this._image = _image;
+    this._showImage = true;
+    print("EmployeeScreen");
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if(!this._showImage) {
+      return new Text('Message has been sent');
+    }
     return Scaffold(
         body: DefaultTextStyle(
             style: TextStyle(
@@ -69,12 +92,12 @@ class EmployeeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           new RaisedButton(
-                            onPressed: () {
-                              notifyUser(Delivery.deliver);
-                            },
-                            child: new Text('Deliver'),
-                            color: Colors.blueGrey,
-                            textColor: Colors.white
+                              onPressed: () {
+                                notifyUser(Delivery.deliver);
+                              },
+                              child: new Text('Deliver'),
+                              color: Colors.blueGrey,
+                              textColor: Colors.white
                           ),
                           new RaisedButton(
                               onPressed: () {
@@ -121,13 +144,16 @@ $message''';
     var bytes = utf8.encode(content);
     var base64 = base64Encode(bytes);
     Message msg = new Message()
-    ..raw = base64;
+      ..raw = base64;
     print( '_currentUser ${_currentUser.email} ${_currentUser.authentication}');
 
 
     try {
       await gmailClient.users.messages.send(msg, _currentUser.email);
       ToastUtil.showToast('Message sent');
+      setState(() {
+        this._showImage = false;
+      });
     } catch(e) {
       ToastUtil.showToast('An error accure');
     }
