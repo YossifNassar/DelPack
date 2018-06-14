@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:delpack/GoogleHttpClient.dart';
 import 'package:delpack/cloud/FirestoreService.dart';
-import 'package:googleapis/gmail/v1.dart';
 import 'cloud/Vision.dart';
 import 'image/textService/ImageTextService.dart';
 import 'dart:core';
@@ -15,7 +13,6 @@ import 'SignInScreen.dart';
 import 'db/dao/EmployeeDAO.dart';
 import 'db/DatabaseManager.dart';
 import 'EmployeeScreen.dart';
-
 
 final _googleSignIn = GoogleSignIn(
   scopes: ['email','https://www.googleapis.com/auth/gmail.compose'],
@@ -72,7 +69,6 @@ class _CameraApp extends State<CameraApp> {
     this._imageTextService = imageTextService;
     _employeeDAO = EmployeeDAO(_dbManager);
     _vision = Vision();
-//    _dbManager.insertEmployee(Employee.fromMap({"lname_en": "nassar", "fname_he": "sdgs", "lname_he": "sdgfsdg", "fname_en": "yossif", "email": "ynassar@outbrain.com" }));
   }
 
   Future _annotateImage() async {
@@ -85,8 +81,7 @@ class _CameraApp extends State<CameraApp> {
     var annotations = await _vision.annotateImage(bytes);
     var candidates = _imageTextService.getNamesCandidates(annotations).map((c) => c.toLowerCase()).toSet();
     print(candidates);
-    print(_employees);
-    var filtered = _employees.where((e) => candidates.contains(e.firstNameEn) && candidates.contains(e.lastNameEn) || candidates.contains(e.firstNameHe) && candidates.contains(e.lastNameHe)).toList();
+    var filtered = _employees.where((e) => _employeeIsCandidate(e, candidates)).toList();
     _employee = filtered.isNotEmpty ? filtered[0] : null;
 //    _employee = await _employeeDAO.getEmployee(candidates);
     print("Found employee: $_employee");
@@ -95,6 +90,16 @@ class _CameraApp extends State<CameraApp> {
       _deleteImageFile();
       _image = image;
     });
+  }
+
+  bool _employeeIsCandidate(Employee e, Set<String> candidates) {
+    var firstNameEn = e.firstNameEn?.trim()?.toLowerCase() ?? "";
+    var lastNameEn = e.lastNameEn?.trim()?.toLowerCase() ?? "";
+    var firstNameHe = e.firstNameHe?.trim()?.toLowerCase() ?? "";
+    var lastNameHe = e.lastNameHe?.trim()?.toLowerCase() ?? "";
+
+    return candidates.containsAll(firstNameEn.split(' ')) && candidates.containsAll(lastNameEn.split(' ')) ||
+        candidates.containsAll(firstNameHe.split(' ')) && candidates.containsAll(lastNameHe.split(' '));
   }
 
   void _deleteImageFile() {
@@ -108,11 +113,11 @@ class _CameraApp extends State<CameraApp> {
     try {
       final FirebaseAuth _auth = FirebaseAuth.instance;
       var googleUser = await _googleSignIn.signIn();
-//      if(!googleUser.email.toLowerCase().contains("outbrain")) {
-//        print("should be an Outbrain account!");
-//        _googleSignIn.signOut();
-//        return;
-//      }
+      if(!googleUser.email.toLowerCase().contains("outbrain")) {
+        print("should be an Outbrain account!");
+        _googleSignIn.signOut();
+        return;
+      }
       var googleAuth = await googleUser.authentication;
       var firebaseUser = await _auth.signInWithGoogle(
         accessToken: googleAuth.accessToken,
@@ -140,7 +145,6 @@ class _CameraApp extends State<CameraApp> {
       _employees = new List<Employee>();
       snapshot.documents.forEach((doc){
         print(doc.data);
-        print(Employee.fromMap(doc.data));
 //        _employeeDAO.insertEmployee(Employee.fromMap(doc.data));
         _employees.add(Employee.fromMap(doc.data));
       });
@@ -157,7 +161,7 @@ class _CameraApp extends State<CameraApp> {
   @override
   Widget build(BuildContext context) {
     if (_currentUser != null) {
-      _employee = _employee == null ? Employee(firstNameEn: 'firstname', lastNameEn: 'lastname', firstNameHe: 'fname_he', lastNameHe: 'lname_he', email: 'emaillonglong.email.com') : _employee;
+//      _employee = _employee == null ? Employee(firstNameEn: 'firstname', lastNameEn: 'lastname', firstNameHe: 'fname_he', lastNameHe: 'lname_he', email: 'emaillonglong.email.com') : _employee;
       print(_employee);
       return Scaffold(
         appBar: AppBar(
