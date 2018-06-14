@@ -14,6 +14,7 @@ import 'SignInScreen.dart';
 import 'db/dao/EmployeeDAO.dart';
 import 'db/DatabaseManager.dart';
 import 'EmployeeScreen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 final _googleSignIn = GoogleSignIn(
   scopes: ['email','https://www.googleapis.com/auth/gmail.compose'],
@@ -76,11 +77,18 @@ class _CameraApp extends State<CameraApp> {
   Future _annotateImage() async {
     setState(() {
       loading = true;
+      _deleteImageFile();
+      _image = null;
     });
 
     var image = await ImagePicker.pickImage(
         source: ImageSource.camera, maxWidth: 1200.0, maxHeight: 1200.0);
     if(image == null) {
+      setState(() {
+        loading = false;
+        _deleteImageFile();
+        _image = null;
+      });
       return;
     }
 
@@ -91,7 +99,14 @@ class _CameraApp extends State<CameraApp> {
     var filtered = _employees.where((e) => _employeeIsCandidate(e, candidates)).toList();
     _employee = filtered.isNotEmpty ? filtered[0] : null;
 //    _employee = await _employeeDAO.getEmployee(candidates);
-    print("Found employee: $_employee");
+    if(_employee == null) {
+      Fluttertoast.showToast(
+          msg: 'Something went wrong please try again',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIos: 1
+      );
+    }
 
     setState(() {
       loading = false;
