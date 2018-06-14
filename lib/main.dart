@@ -139,6 +139,11 @@ class _CameraApp extends State<CameraApp> {
     }
   }
 
+  Future<Null> _handleSignOut() async {
+    await _googleSignIn.signOut();
+    await _googleSignIn.disconnect();
+  }
+
   @override
   void initState() {
     super.initState();
