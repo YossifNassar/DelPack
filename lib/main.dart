@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:delpack/cloud/FirestoreService.dart';
+import 'package:delpack/loader.dart';
 import 'cloud/Vision.dart';
 import 'image/textService/ImageTextService.dart';
 import 'dart:core';
@@ -175,8 +176,7 @@ class _CameraApp extends State<CameraApp> {
           title: Text('Welcome ${_username == null ? "" : _username}'),
         ),
         body: Center(
-          child: (_image == null || _employee == null) && loading ? Text(
-              'Processing your request please wait...') :
+          child: (_image == null || _employee == null) && loading ? new Loader() :
           _image == null || _employee == null ? Text('No image selected.')
               : EmployeeScreen(_employee, Image.file(_image), _currentUser),
         ),
